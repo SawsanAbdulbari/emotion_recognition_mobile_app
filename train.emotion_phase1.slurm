@@ -11,7 +11,7 @@
 #SBATCH --output=%A_%a_emotion.out
 #SBATCH --error=%A_%a_emotion.err
 #SBATCH --mail-type=END,FAIL
-#SBATCH --mail-user=youremail@domain.com
+#SBATCH --mail-user=sawsan23000@student.hamk.fi
 
 # Define locations
 PROJECT_DIR="/scratch/project_2014146/$USER"
@@ -21,17 +21,16 @@ LOG_DIR="$PROJECT_DIR/logs"
 mkdir -p $LOG_DIR
 
 # Map array task ID to model
-MODELS=(efficientnet_b0 mobilenet_v3_small resnet50 densenet121 mobilevit_xxs)
+MODELS=(efficientnet_b0 mobilenet_v3_small resnet50 mobilevit_xxs)
 MODEL=${MODELS[$SLURM_ARRAY_TASK_ID]}
 echo "Task $SLURM_ARRAY_TASK_ID → training $MODEL"
 
 # Load CSC modules
 module purge
-module load pytorch/1.12
-module load torchvision
-module load matplotlib
-module load pandas
-module load scikit-learn
+module load pytorch/1.12           # includes torch & torchvision
+module load py-matplotlib          # matplotlib bindings
+module load py-pandas              # pandas
+module load py-scikit-learn        # scikit-learn
 
 # Create model-specific directories
 mkdir -p $PROJECT_DIR/outputs/logs/$MODEL

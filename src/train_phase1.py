@@ -16,7 +16,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, models
-from torchvision.transforms import v2 as transforms_v2
+import torchvision.transforms as transforms_v2
 from torchvision.io import read_image
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 
