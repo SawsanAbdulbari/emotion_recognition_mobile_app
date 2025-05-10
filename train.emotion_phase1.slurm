@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
 #SBATCH --time=12:00:00
-#SBATCH --gres=gpu:v100:1,nvme:10G
+#SBATCH --gres=gpu:v100:1,nvme:10
 #SBATCH --array=0-2
 #SBATCH --output=%A_%a_emotion.out
 #SBATCH --error=%A_%a_emotion.err
@@ -24,9 +24,16 @@ MODELS=(efficientnet_b0 resnet50 mobilenet_v3_small)
 MODEL=${MODELS[$SLURM_ARRAY_TASK_ID]}
 echo "Task $SLURM_ARRAY_TASK_ID → training $MODEL"
 
-# Load CSC module
+# Load CSC modules - updated to version available on Puhti
 module purge
-module load pytorch/1.12.1
+module load pytorch/1.12
+
+# Verify python is available
+which python
+python --version
+
+# Install required packages
+pip install --user omegaconf tqdm
 
 # Copy script to local fast storage
 cp $PROJECT_DIR/src/train_phase1.py $LOCAL_SCRATCH/
