@@ -16,12 +16,11 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms, models
-import torchvision.transforms as transforms
 from torchvision.io import read_image
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 
 # Import OmegaConf for config handling
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf # type: ignore
 
 # Set up tensorboard logging
 try:
@@ -409,25 +408,25 @@ def main():
     # Enhanced transforms with less memory-intensive operations
     data_transforms = {
         'train': transforms.Compose([
-            transforms_v2.ToDtype(torch.float32, scale=True),
-            transforms_v2.RandomResizedCrop(224, scale=(0.8, 1.0)),  # Less extreme crop
-            transforms_v2.RandomHorizontalFlip(p=0.5),
-            transforms_v2.RandomRotation(15),  # Reduced rotation
-            transforms_v2.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),  # Reduced jitter
-            transforms_v2.RandomErasing(p=0.1, scale=(0.02, 0.08)),  # Reduced erasing
-            transforms_v2.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            transforms.ConvertImageDtype(torch.float32),
+            transforms.RandomResizedCrop(224, scale=(0.8, 1.0)),  # Less extreme crop
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomRotation(15),  # Reduced rotation
+            transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),  # Reduced jitter
+            transforms.RandomErasing(p=0.1, scale=(0.02, 0.08)),  # Reduced erasing
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
         'val': transforms.Compose([
-            transforms_v2.ToDtype(torch.float32, scale=True),
-            transforms_v2.Resize(248),  # Slightly smaller resize
-            transforms_v2.CenterCrop(224),
-            transforms_v2.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            transforms.ConvertImageDtype(torch.float32),
+            transforms.Resize(248),  # Slightly smaller resize
+            transforms.CenterCrop(224),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
         'test': transforms.Compose([
-            transforms_v2.ToDtype(torch.float32, scale=True),
-            transforms_v2.Resize(248),  # Slightly smaller resize
-            transforms_v2.CenterCrop(224),
-            transforms_v2.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            transforms.ConvertImageDtype(torch.float32),
+            transforms.Resize(248),  # Slightly smaller resize
+            transforms.CenterCrop(224),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
     }
     

@@ -26,10 +26,17 @@ echo "Task $SLURM_ARRAY_TASK_ID → training $MODEL"
 
 # Load CSC modules
 module purge
+module load Python/3.8.10
 module load pytorch/1.12           # includes torch & torchvision
 module load py-matplotlib          # matplotlib bindings
 module load py-pandas              # pandas
 module load py-scikit-learn        # scikit-learn
+ 
+# ensure --user installs go into ~/.local/
+pip install --user omegaconf
+# now run
+pip install --user timm
+
 
 # Create model-specific directories
 mkdir -p $PROJECT_DIR/outputs/logs/$MODEL \
