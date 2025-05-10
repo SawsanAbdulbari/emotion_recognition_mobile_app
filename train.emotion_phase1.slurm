@@ -14,29 +14,19 @@
 #SBATCH --mail-user=sawsan23000@student.hamk.fi
 
 # Define locations
-PROJECT_DIR="/scratch/project_2014146/$USER"
+PROJECT_DIR="/projappl/project_2014146/sawsan-abdulbari/projects/emotion_recognition_mobile_app"
 DATA_DIR="/scratch/project_2014146/sawsan-abdulbari/data/fer2013_dataset/processed/processed"
-LOG_DIR="$PROJECT_DIR/logs"
+LOG_DIR="$PROJECT_DIR/outputs/logs"
 mkdir -p $LOG_DIR
 
 # Map array task ID to model
-MODELS=(efficientnet_b0 mobilenet_v3_small resnet50 densenet121 mobilevit_xxs)
+MODELS=(efficientnet_b0 resnet50 mobilenet_v3_small)
 MODEL=${MODELS[$SLURM_ARRAY_TASK_ID]}
 echo "Task $SLURM_ARRAY_TASK_ID → training $MODEL"
 
 # Load CSC modules
 module purge
-module load Python/3.8.10
-module load pytorch/1.12           # includes torch & torchvision
-module load py-matplotlib          # matplotlib bindings
-module load py-pandas              # pandas
-module load py-scikit-learn        # scikit-learn
- 
-# ensure --user installs go into ~/.local/
-pip install --user omegaconf
-# now run
-pip install --user timm
-
+module load pytorch/1.12.1-cuda11.3
 
 # Create model-specific directories
 mkdir -p $PROJECT_DIR/outputs/logs/$MODEL \
@@ -44,11 +34,14 @@ mkdir -p $PROJECT_DIR/outputs/logs/$MODEL \
          $PROJECT_DIR/outputs/metrics/$MODEL \
          $PROJECT_DIR/outputs/checkpoints/$MODEL
 
-# Run the training script
-srun python src/train_phase1.py \
+# Install required packages if not already installed
+pip install --user omegaconf tqdm
+# Use the modified script instead of the original one
+srun python $SLURM_TMPDIR/train_phase1_fixed.py \
      --config configs/phase1.yaml \
      --model $MODEL \
      --pretrained \
      --data-dir $DATA_DIR \
-     --log-dir outputs/logs/$MODEL \
-     --output-dir models/$MODEL
+     --batch-size 32 \
+     --log-dir $PROJECT_DIR/outputs/logs/$MODEL \
+     --output-dir $PROJECT_DIR/models/$MODEL

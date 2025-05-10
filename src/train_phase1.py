@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# train_phase1.py - Train emotion recognition model using config file
+# Modified train_phase1.py without expandable_segments option
 
 import os
 import argparse
@@ -20,7 +20,7 @@ from torchvision.io import read_image
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 
 # Import OmegaConf for config handling
-from omegaconf import OmegaConf # type: ignore
+from omegaconf import OmegaConf
 
 # Set up tensorboard logging
 try:
@@ -79,22 +79,22 @@ def create_model(model_name, num_classes=6, pretrained=True):
     """Create a model with pretrained weights and custom head."""
     
     if model_name == 'efficientnet_b0':
-        model = models.efficientnet_b0(weights='DEFAULT' if pretrained else None)
+        model = models.efficientnet_b0(pretrained=pretrained)
         num_ftrs = model.classifier[1].in_features
         model.classifier[1] = nn.Linear(num_ftrs, num_classes)
     
     elif model_name == 'mobilenet_v3_small':
-        model = models.mobilenet_v3_small(weights='DEFAULT' if pretrained else None)
+        model = models.mobilenet_v3_small(pretrained=pretrained)
         num_ftrs = model.classifier[3].in_features
         model.classifier[3] = nn.Linear(num_ftrs, num_classes)
     
     elif model_name == 'resnet50':
-        model = models.resnet50(weights='DEFAULT' if pretrained else None)
+        model = models.resnet50(pretrained=pretrained)
         num_ftrs = model.fc.in_features
         model.fc = nn.Linear(num_ftrs, num_classes)
         
     elif model_name == 'densenet121':
-        model = models.densenet121(weights='DEFAULT' if pretrained else None)
+        model = models.densenet121(pretrained=pretrained)
         num_ftrs = model.classifier.in_features
         model.classifier = nn.Linear(num_ftrs, num_classes)
     
@@ -108,13 +108,13 @@ def create_model(model_name, num_classes=6, pretrained=True):
         except ImportError:
             print("timm library not installed. Install with: pip install timm")
             print("Falling back to EfficientNet-B0")
-            model = models.efficientnet_b0(weights='DEFAULT' if pretrained else None)
+            model = models.efficientnet_b0(pretrained=pretrained)
             num_ftrs = model.classifier[1].in_features
             model.classifier[1] = nn.Linear(num_ftrs, num_classes)
     
     else:
         print(f"Model {model_name} not supported. Using EfficientNet-B0")
-        model = models.efficientnet_b0(weights='DEFAULT' if pretrained else None)
+        model = models.efficientnet_b0(pretrained=pretrained)
         num_ftrs = model.classifier[1].in_features
         model.classifier[1] = nn.Linear(num_ftrs, num_classes)
     
@@ -402,8 +402,7 @@ def main():
     if torch.cuda.is_available():
         # Enable memory optimization
         torch.cuda.empty_cache()
-        # Optimize memory allocation
-        os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
+        # NOTE: Removed the problematic expandable_segments option here
     
     # Enhanced transforms with less memory-intensive operations
     data_transforms = {
