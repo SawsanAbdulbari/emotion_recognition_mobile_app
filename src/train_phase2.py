@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-# train_phase2_optimized.py - Optimized for Puhti CSC
+# train_phase2.py - Train emotion recognition model for RAF-DB dataset
+# Optimized version based on successful local training runs (84.68% accuracy with EfficientNet-B0)
+# Default parameters set to match the successful local configuration:
+# - Model: EfficientNet-B0
+# - Learning Rate: 0.0005
+# - Batch Size: 16
+# - Weight Decay: 1e-3
+# - Epochs: 30
 
 import json
 import os
@@ -12,6 +19,8 @@ from datetime import datetime
 import random
 from sklearn.model_selection import StratifiedKFold
 import warnings
+import sys
+import torchvision
 warnings.filterwarnings("ignore", category=UserWarning)
 
 import torch
@@ -23,6 +32,15 @@ from torchvision import transforms, models
 from torchvision.transforms import v2 as transforms_v2
 from torchvision.io import read_image
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+
+# Define nullcontext for environments without CUDA support
+class nullcontext:
+    """Context manager that does nothing. Used as a fallback for autocast when CUDA is not available."""
+    def __enter__(self):
+        return None
+    
+    def __exit__(self, *args):
+        pass
 
 # Import OmegaConf for config handling
 try:
@@ -404,7 +422,7 @@ class EmotionAttentionNetwork(nn.Module):
 def create_model(model_name, num_classes=7, pretrained=True):
     """Create model based on specified architecture."""
     if model_name == 'emotion_attention_net':
-        base = 'efficientnet_b0'
+        base = 'efficientnet_b0'  # Default to EfficientNet-B0 as it performed better
         model = EmotionAttentionNetwork(num_classes=num_classes, base_model=base, pretrained=pretrained)
         print(f"Created EmotionAttentionNetwork with {base} backbone")
     
@@ -422,6 +440,7 @@ def create_model(model_name, num_classes=7, pretrained=True):
         model = models.efficientnet_b0(weights='DEFAULT' if pretrained else None)
         num_ftrs = model.classifier[1].in_features
         model.classifier[1] = nn.Linear(num_ftrs, num_classes)
+        print(f"Created EfficientNet-B0 (best performing in local tests)")
     
     elif model_name == 'efficientnet_b2':
         model = models.efficientnet_b2(weights='DEFAULT' if pretrained else None)
@@ -438,16 +457,9 @@ def create_model(model_name, num_classes=7, pretrained=True):
         model = models.efficientnet_b0(weights='DEFAULT' if pretrained else None)
         num_ftrs = model.classifier[1].in_features
         model.classifier[1] = nn.Linear(num_ftrs, num_classes)
+        print(f"Created EfficientNet-B0 (best performing in local tests)")
     
     return model
-
-class nullcontext:
-    """Context manager that does nothing. Used as a fallback for autocast when CUDA is not available."""
-    def __enter__(self):
-        return None
-    
-    def __exit__(self, *args):
-        pass
 
 def mixup_data(x, y, alpha=0.2, device='cuda'):
     '''Returns mixed inputs, pairs of targets, and lambda'''
@@ -1144,29 +1156,29 @@ def k_fold_cross_validation(model_name, dataset, k=5, batch_size=32, num_epochs=
     return fold_results
 
 def parse_args():
-    """Parse command line arguments with Puhti CSC specific options."""
-    parser = argparse.ArgumentParser(description='Train emotion recognition model on RAF-DB dataset (Puhti CSC optimized)')
+    """Parse command line arguments with performance optimizations."""
+    parser = argparse.ArgumentParser(description='Train emotion recognition model on RAF-DB dataset (Optimized version)')
     parser.add_argument('--config', type=str, help='Path to YAML configuration file')
     parser.add_argument('--data_dir', type=str, help='Path to RAF-DB dataset directory')
     parser.add_argument('--label_file', type=str, help='Path to RAF-DB label file')
     parser.add_argument('--output_dir', type=str, default='./output', help='Path to output directory')
-    parser.add_argument('--model', type=str, default='emotion_attention_net', 
+    parser.add_argument('--model', type=str, default='efficientnet_b0', 
                         help='Model architecture to use')
-    parser.add_argument('--batch_size', type=int, default=32, help='Batch size for training')
-    parser.add_argument('--epochs', type=int, default=50, help='Number of epochs to train')
-    parser.add_argument('--lr', type=float, default=0.001, help='Initial learning rate')
-    parser.add_argument('--weight_decay', type=float, default=1e-5, help='Weight decay for optimization')
+    parser.add_argument('--batch_size', type=int, default=16, help='Batch size for training')
+    parser.add_argument('--epochs', type=int, default=30, help='Number of epochs to train')
+    parser.add_argument('--lr', type=float, default=0.0005, help='Initial learning rate')
+    parser.add_argument('--weight_decay', type=float, default=1e-3, help='Weight decay for optimization')
     parser.add_argument('--k_fold', type=int, default=0, 
                         help='Number of folds for cross-validation (0 to disable)')
     parser.add_argument('--mixup_alpha', type=float, default=0.2, 
                         help='Alpha parameter for mixup augmentation (0 to disable)')
-    parser.add_argument('--early_stopping', type=int, default=15, 
+    parser.add_argument('--early_stopping', type=int, default=10, 
                         help='Patience for early stopping')
     parser.add_argument('--seed', type=int, default=42, help='Random seed for reproducibility')
     parser.add_argument('--no_pretrained', action='store_true', 
                         help='Disable use of pretrained weights')
     
-    # Puhti CSC specific optimizations
+    # Performance optimizations
     parser.add_argument('--num_workers', type=int, default=4, 
                         help='Number of workers for data loading')
     parser.add_argument('--checkpoint_freq', type=int, default=5,
@@ -1189,7 +1201,7 @@ def parse_args():
     return parser.parse_args()
 
 def main():
-    """Main function optimized for Puhti CSC."""
+    """Main function with performance optimizations."""
     start_time = time.time()
     
     # Parse arguments
@@ -1238,14 +1250,14 @@ def main():
         print("Error: No label file provided. Use --label_file or specify in config.")
         return
         
-    model_name = args.model if args.model != 'emotion_attention_net' else config.get('model', {}).get('name', 'emotion_attention_net')
-    batch_size = args.batch_size if args.batch_size != 32 else config.get('training', {}).get('batch_size', 32)
-    epochs = args.epochs if args.epochs != 50 else config.get('training', {}).get('epochs', 50)
-    learning_rate = args.lr if args.lr != 0.001 else config.get('training', {}).get('lr', 0.001)
-    weight_decay = args.weight_decay if args.weight_decay != 1e-5 else config.get('training', {}).get('weight_decay', 1e-5)
+    model_name = args.model if args.model != 'efficientnet_b0' else config.get('model', {}).get('name', 'efficientnet_b0')
+    batch_size = args.batch_size if args.batch_size != 16 else config.get('training', {}).get('batch_size', 16)
+    epochs = args.epochs if args.epochs != 30 else config.get('training', {}).get('epochs', 30)
+    learning_rate = args.lr if args.lr != 0.0005 else config.get('training', {}).get('lr', 0.0005)
+    weight_decay = args.weight_decay if args.weight_decay != 1e-3 else config.get('training', {}).get('weight_decay', 1e-3)
     k_fold = args.k_fold if args.k_fold != 0 else config.get('training', {}).get('k_fold', 0)
     mixup_alpha = args.mixup_alpha if args.mixup_alpha != 0.2 else config.get('training', {}).get('mixup_alpha', 0.2)
-    early_stopping = args.early_stopping if args.early_stopping != 15 else config.get('training', {}).get('early_stopping_patience', 15)
+    early_stopping = args.early_stopping if args.early_stopping != 10 else config.get('training', {}).get('early_stopping_patience', 10)
     seed = args.seed if args.seed != 42 else config.get('training', {}).get('seed', 42)
     no_pretrained = args.no_pretrained if args.no_pretrained else not config.get('model', {}).get('pretrained', True)
     
@@ -1275,7 +1287,7 @@ def main():
     print(f"  Seed: {seed}")
     print(f"  Pretrained: {not no_pretrained}")
     print(f"  Label Smoothing: {label_smoothing}")
-    print(f"\nPuhti CSC Optimizations:")
+    print(f"\nPerformance Optimizations:")
     print(f"  Number of Workers: {num_workers}")
     print(f"  Checkpoint Frequency: {checkpoint_freq}")
     print(f"  Pin Memory: {pin_memory}")
@@ -1320,7 +1332,7 @@ def main():
         'timestamp': timestamp,
         'pytorch_version': torch.__version__,
         'cuda_version': torch.version.cuda if torch.cuda.is_available() else "N/A",
-        'environment': 'Puhti CSC'
+        'environment': 'optimized'
     }
     
     with open(os.path.join(output_dir, 'config.json'), 'w') as f:
@@ -1662,7 +1674,6 @@ def main():
     print(f"\nModel training completed successfully!")
     print(f"Results saved to: {output_dir}")
 
-
 # Utility class for JSON serialization of numpy types
 class NumpyEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -1675,7 +1686,4 @@ class NumpyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 if __name__ == "__main__":
-    # Add import for sys module
-    import sys
-    import torchvision
     main()

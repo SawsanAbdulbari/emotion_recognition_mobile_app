@@ -1,41 +1,42 @@
 # configs/phase2.yaml
+# Updated based on successful local runs (84.68% accuracy)
 
 data:
-  dir: "/scratch/project_2014146/sawsan-abdulbari/data/raf-db"
-  label_file: "/scratch/project_2014146/sawsan-abdulbari/data/raf-db/list_patition_label.txt"
+  dir: "/scratch/project_2014146/sawsan-abdulbari/data/rafdb_dataset/processed"
+  label_file: "/scratch/project_2014146/sawsan-abdulbari/data/rafdb_dataset/processed/labels.csv"
 
 model:
-  name: "emotion_attention_net"  # Custom model for RAF-DB with attention
-  pretrained: true               # Using pretrained backbone weights
+  name: "efficientnet_b0"             # Using EfficientNet-B0 which performed best locally
+  pretrained: true                    # Using pretrained backbone weights
 
 training:
-  batch_size: 32                 # Batch size (will be adjusted based on GPU memory)
-  epochs: 50                     # Train for 50 epochs
-  lr: 0.0001                     # Lower learning rate for fine-tuning
-  weight_decay: 1e-5             # Weight decay for regularization
-  seed: 42                       # Keep seed consistent for reproducibility
-  early_stopping_patience: 15    # More patience for the complex dataset
-  mixup_alpha: 0.2               # Mixup augmentation for better generalization
-  label_smoothing: 0.1           # Label smoothing helps with calibration
-  grad_clip_value: 1.0           # Gradient clipping to prevent exploding gradients
-  k_fold: 0                      # Default to regular training (not k-fold cross-validation)
+  batch_size: 16                      # Optimal batch size from local run
+  epochs: 30                          # Optimal number of epochs from local run
+  lr: 0.0005                          # Optimal learning rate from local run
+  weight_decay: 1e-3                  # Optimal weight decay from local run
+  seed: 42                            # Keep seed consistent for reproducibility
+  early_stopping_patience: 10         # Adjusted patience for the local configuration
+  mixup_alpha: 0.2                    # Mixup augmentation for better generalization
+  label_smoothing: 0.1                # Label smoothing helps with calibration
+  grad_clip_value: 1.0                # Gradient clipping to prevent exploding gradients
+  k_fold: 0                           # Default to regular training (not k-fold cross-validation)
   
   lr_scheduler:
-    type: "reduce_on_plateau"    # Reduce LR when validation loss plateaus
-    factor: 0.5                  # Reduce by half
-    patience: 5                  # Wait 5 epochs before reducing LR
-    min_lr: 1e-6                 # Minimum learning rate
+    type: "reduce_on_plateau"         # Reduce LR when validation loss plateaus
+    factor: 0.5                       # Reduce by half
+    patience: 5                       # Wait 5 epochs before reducing LR
+    min_lr: 1e-6                      # Minimum learning rate
 
   optimizer:
-    type: "adamw"                # AdamW optimizer for weight decay handling
+    type: "adamw"                     # AdamW optimizer for weight decay handling
 
-# Puhti CSC specific optimizations
+# Performance optimizations
 puhti:
-  num_workers: 4                 # Number of data loading workers (matches SLURM config)
-  pin_memory: true               # Use pinned memory for faster GPU transfers
-  mixed_precision: true          # Use mixed precision for faster computation
-  checkpoint_freq: 5             # Save checkpoints every 5 epochs
-  grad_clip: 1.0                 # Gradient clipping value
+  num_workers: 4                      # Number of data loading workers (matches SLURM config)
+  pin_memory: true                    # Use pinned memory for faster GPU transfers
+  mixed_precision: true               # Use mixed precision for faster computation
+  checkpoint_freq: 5                  # Save checkpoints every 5 epochs
+  grad_clip: 1.0                      # Gradient clipping value
 
 augmentation:
   # Advanced augmentations for RAF-DB
