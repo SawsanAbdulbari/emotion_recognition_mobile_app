@@ -3,11 +3,11 @@
 #SBATCH --partition=gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=8
 #SBATCH --mem=16G
-#SBATCH --time=12:00:00
+#SBATCH --time=6:00:00
 #SBATCH --gres=gpu:v100:1,nvme:10
-#SBATCH --array=0-2
+#SBATCH --array=0-4
 #SBATCH --output=%A_%a_emotion.out
 #SBATCH --error=%A_%a_emotion.err
 #SBATCH --mail-type=END,FAIL
@@ -20,7 +20,7 @@ LOG_DIR="$PROJECT_DIR/outputs/logs"
 mkdir -p $LOG_DIR
 
 # Map array task ID to model
-MODELS=(efficientnet_b0 resnet50 mobilenet_v3_small)
+MODELS=(efficientnet_b0 resnet50 mobilenet_v3_small mobilevit_xxs densenet121)
 MODEL=${MODELS[$SLURM_ARRAY_TASK_ID]}
 echo "Task $SLURM_ARRAY_TASK_ID → training $MODEL"
 
@@ -53,7 +53,8 @@ srun python $LOCAL_SCRATCH/train_phase1.py \
      --data-dir $DATA_DIR \
      --batch-size 32 \
      --log-dir $PROJECT_DIR/outputs/logs/$MODEL \
-     --output-dir $PROJECT_DIR/models/$MODEL
+     --output-dir $PROJECT_DIR/models/$MODEL \
+     --test
 
 # Copy any remaining results back to persistent storage
 # (In case the script writes any extra files to current directory)
