@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# Modified train_phase1.py without expandable_segments option
 
 import os
 import argparse
@@ -402,28 +401,26 @@ def main():
     if torch.cuda.is_available():
         # Enable memory optimization
         torch.cuda.empty_cache()
-        # NOTE: Removed the problematic expandable_segments option here
     
-    # Enhanced transforms with less memory-intensive operations
     data_transforms = {
         'train': transforms.Compose([
             transforms.ConvertImageDtype(torch.float32),
-            transforms.RandomResizedCrop(224, scale=(0.8, 1.0)),  # Less extreme crop
+            transforms.RandomResizedCrop(224, scale=(0.8, 1.0)), 
             transforms.RandomHorizontalFlip(p=0.5),
-            transforms.RandomRotation(15),  # Reduced rotation
+            transforms.RandomRotation(15),  
             transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),  # Reduced jitter
             transforms.RandomErasing(p=0.1, scale=(0.02, 0.08)),  # Reduced erasing
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
         'val': transforms.Compose([
             transforms.ConvertImageDtype(torch.float32),
-            transforms.Resize(248),  # Slightly smaller resize
+            transforms.Resize(248), 
             transforms.CenterCrop(224),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
         'test': transforms.Compose([
             transforms.ConvertImageDtype(torch.float32),
-            transforms.Resize(248),  # Slightly smaller resize
+            transforms.Resize(248),  
             transforms.CenterCrop(224),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
@@ -445,7 +442,7 @@ def main():
             image_datasets[x],
             batch_size=config.training.batch_size,
             shuffle=(x == 'train'),
-            num_workers=2,  # Reduced workers
+            num_workers=2,  
             pin_memory=True  # Use pinned memory for faster transfers
         )
         for x in ['train', 'val', 'test']
@@ -455,11 +452,11 @@ def main():
     model = create_model(config.model.name, num_classes=len(EMOTION_CLASSES), pretrained=config.model.pretrained)
     model = model.to(device)
     
-    # Define loss function and optimizer - Changed from Adam to AdamW
+    # Define loss function and optimizer
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=config.training.lr, weight_decay=config.training.weight_decay)
     
-    # Define learning rate scheduler with improved scheduling
+    # Define learning rate scheduler
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=config.training.epochs)
     
     # Create unique log directory
