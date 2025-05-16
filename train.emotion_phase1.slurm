@@ -11,11 +11,11 @@
 #SBATCH --output=%A_%a_emotion.out
 #SBATCH --error=%A_%a_emotion.err
 #SBATCH --mail-type=END,FAIL
-#SBATCH --mail-user=sawsan23000@student.hamk.fi
+#SBATCH --mail-user=example@mail.com
 
 # Define locations
-PROJECT_DIR="/projappl/project_2014146/sawsan-abdulbari/projects/emotion_recognition_mobile_app"
-DATA_DIR="/scratch/project_2014146/sawsan-abdulbari/data/fer2013_dataset/processed/processed"
+PROJECT_DIR="/path/to/project/folder"
+DATA_DIR="/path/to/data/folder"
 LOG_DIR="$PROJECT_DIR/outputs/logs"
 mkdir -p $LOG_DIR
 
@@ -24,7 +24,7 @@ MODELS=(efficientnet_b0 resnet50 mobilenet_v3_small mobilevit_xxs densenet121)
 MODEL=${MODELS[$SLURM_ARRAY_TASK_ID]}
 echo "Task $SLURM_ARRAY_TASK_ID → training $MODEL"
 
-# Load CSC modules - updated to version available on Puhti
+# Load CSC modules
 module purge
 module load pytorch/1.12
 
@@ -35,7 +35,7 @@ python --version
 # Install required packages
 pip install --user omegaconf tqdm
 
-# Copy script to local fast storage
+# Copy script to local fast temp storage
 cp $PROJECT_DIR/src/train_phase1.py $LOCAL_SCRATCH/
 cd $LOCAL_SCRATCH
 
@@ -57,5 +57,4 @@ srun python $LOCAL_SCRATCH/train_phase1.py \
      --test
 
 # Copy any remaining results back to persistent storage
-# (In case the script writes any extra files to current directory)
 cp -r $LOCAL_SCRATCH/* $SLURM_SUBMIT_DIR/ 2>/dev/null || true
