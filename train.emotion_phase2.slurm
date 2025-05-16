@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=project_2014146
+#SBATCH --account=project_ID
 #SBATCH --partition=gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
@@ -11,7 +11,7 @@
 #SBATCH --output=%A_%a_emotion_phase2.out
 #SBATCH --error=%A_%a_emotion_phase2.err
 #SBATCH --mail-type=END,FAIL
-#SBATCH --mail-user=sawsan23000@student.hamk.fi
+#SBATCH --mail-user=exampl@mail.com
 
 # Set environment variables to disable hash checking for model weights
 export TORCH_HOME=$LOCAL_SCRATCH/.torch
@@ -19,9 +19,9 @@ export TORCH_HUB_DISABLE_HASHCHECK=1
 export PYTHONWARNINGS="ignore::UserWarning"
 
 # Define locations
-PROJECT_DIR="/projappl/project_2014146/sawsan-abdulbari/projects/emotion_recognition_mobile_app"
-DATA_DIR="/scratch/project_2014146/sawsan-abdulbari/data/rafdb_dataset/processed"
-LABEL_FILE="/scratch/project_2014146/sawsan-abdulbari/data/rafdb_dataset/processed/labels.csv"
+PROJECT_DIR="/path/to/project/folder"
+DATA_DIR="/path/to/data/folder"
+LABEL_FILE="/path/to/data/folder/labels.csv"
 CONFIG_DIR="$PROJECT_DIR/configs"
 OUTPUT_DIR="$PROJECT_DIR/models/phase2"
 LOG_DIR="$PROJECT_DIR/outputs/logs/phase2"
