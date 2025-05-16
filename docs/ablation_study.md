@@ -2,7 +2,7 @@ Running 30 experiments...
 
 Summary Statistics:
 
-Original Model:§
+Original Model:
   Size: 46.38 MB
   Average Latency: 6.97 ms
   Overall Accuracy: 0.8623
