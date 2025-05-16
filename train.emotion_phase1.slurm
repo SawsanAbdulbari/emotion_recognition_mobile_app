@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --account=project_2014146
+#SBATCH --account=project_ID
 #SBATCH --partition=gpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
