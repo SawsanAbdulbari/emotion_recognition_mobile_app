@@ -4,22 +4,22 @@ data:
   dir: "data/fer2013_dataset/processed"
 
 model:
-  name: "efficientnet_b0"        # Best performing model for emotion recognition
-  pretrained: true               # Using pretrained weights is recommended for FER2013
+  name: "efficientnet_b0"      
+  pretrained: true              
 
 training:
-  batch_size: 64                 # Increased from 32 for better gradient estimates
-  epochs: 50                     # Increased from 30 for better convergence
-  lr: 0.0005                     # Reduced from 0.001 for more stable training
-  weight_decay: 2e-5             # Better regularization for FER2013
-  seed: 42                       # Keep seed consistent for reproducibility
+  batch_size: 64             
+  epochs: 50                  
+  lr: 0.0005                    
+  weight_decay: 2e-5           
+  seed: 42                      
   early_stopping_patience: 10    # Stop if no improvement for 10 epochs
   lr_scheduler:
-    type: "cosine"               # Cosine annealing scheduler works well
-    T_max: 50                    # Match with number of epochs
-    eta_min: 1e-6                # Minimum learning rate
+    type: "cosine"             
+    T_max: 50               
+    eta_min: 1e-6            
   optimizer:
-    type: "adamw"                # AdamW instead of Adam for weight decay handling
+    type: "adamw"              
 
 augmentation:
   cutout_prob: 0.5               # Helps with overfitting
