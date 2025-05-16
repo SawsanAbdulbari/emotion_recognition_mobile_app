@@ -1,9 +1,8 @@
 # configs/phase2.yaml
-# Updated based on successful local runs (84.68% accuracy)
 
 data:
-  dir: "/scratch/project_2014146/sawsan-abdulbari/data/rafdb_dataset/processed"
-  label_file: "/scratch/project_2014146/sawsan-abdulbari/data/rafdb_dataset/processed/labels.csv"
+  dir: "/path/to/data/folder"
+  label_file: "/path/to/data/folder/labels.csv"
 
 model:
   name: "efficientnet_b0"             # Using EfficientNet-B0 which performed best locally
@@ -14,12 +13,12 @@ training:
   epochs: 30                          # Optimal number of epochs from local run
   lr: 0.0005                          # Optimal learning rate from local run
   weight_decay: 1e-3                  # Optimal weight decay from local run
-  seed: 42                            # Keep seed consistent for reproducibility
-  early_stopping_patience: 10         # Adjusted patience for the local configuration
+  seed: 42                          
+  early_stopping_patience: 10      
   mixup_alpha: 0.2                    # Mixup augmentation for better generalization
-  label_smoothing: 0.1                # Label smoothing helps with calibration
-  grad_clip_value: 1.0                # Gradient clipping to prevent exploding gradients
-  k_fold: 0                           # Default to regular training (not k-fold cross-validation)
+  label_smoothing: 0.1                # Label smoothing for calibration
+  grad_clip_value: 1.0                # Gradient clipping
+  k_fold: 0                      
   
   lr_scheduler:
     type: "reduce_on_plateau"         # Reduce LR when validation loss plateaus
@@ -32,8 +31,8 @@ training:
 
 # Performance optimizations
 puhti:
-  num_workers: 4                      # Number of data loading workers (matches SLURM config)
-  pin_memory: true                    # Use pinned memory for faster GPU transfers
+  num_workers: 4                      # Number of data loading workers 
+  pin_memory: true                    # Pinned memory for faster GPU transfers
   mixed_precision: true               # Use mixed precision for faster computation
   checkpoint_freq: 5                  # Save checkpoints every 5 epochs
   grad_clip: 1.0                      # Gradient clipping value
@@ -52,7 +51,7 @@ augmentation:
     contrast: 0.2
     saturation: 0.2
 
-# RAF-DB has 7 emotion classes (includes disgust)
+# RAF-DB has 7 emotion classes (includes disgust unlike FER-2013, where it was not used)
 classes:
   - 'anger'
   - 'fear'
